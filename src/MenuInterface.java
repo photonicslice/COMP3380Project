@@ -24,11 +24,12 @@ public class MenuInterface {
             System.out.println("3. Customer Behavior Analysis");
             System.out.println("4. Order and Review Quality Analysis");
             System.out.println("5. Payment and Transaction Analysis");
-            System.out.println("6. Database Management");
-            System.out.println("7. Help / Instructions");
-            System.out.println("8. Exit Application");
+            System.out.println("6. Additional Analysis");
+            System.out.println("7. Database Management");
+            System.out.println("8. Help / Instructions");
+            System.out.println("9. Exit Application");
             System.out.println();
-            System.out.print("Enter your choice (1-8): ");
+            System.out.print("Enter your choice (1-9): ");
 
             String choice = scanner.nextLine().trim();
 
@@ -49,17 +50,20 @@ public class MenuInterface {
                     showPaymentAnalysisMenu();
                     break;
                 case "6":
-                    showDatabaseManagementMenu();
+                    showAdditionalAnalysisMenu();
                     break;
                 case "7":
-                    showHelp();
+                    showDatabaseManagementMenu();
                     break;
                 case "8":
+                    showHelp();
+                    break;
+                case "9":
                     System.out.println("\nThank you for using the Brazilian E-Commerce Database Analyzer!");
                     DatabaseConnection.closeConnection();
                     return;
                 default:
-                    System.out.println("\nInvalid choice. Please enter a number between 1 and 8.");
+                    System.out.println("\nInvalid choice. Please enter a number between 1 and 9.");
                     pause();
             }
         }
@@ -298,9 +302,60 @@ public class MenuInterface {
         }
     }
 
+    private void showAdditionalAnalysisMenu() {
+        printSeparator();
+        System.out.println("Main Menu > 6. Additional Analysis");
+        printSeparator();
+        System.out.println("\nAdditional Analysis - Available Queries:");
+        System.out.println("-----------------------------------------");
+        System.out.println("1. Delivery Performance by State");
+        System.out.println("   -> Analyzes delivery times, delays, and late delivery rates per state");
+        System.out.println();
+        System.out.println("2. Category Performance by Quarter");
+        System.out.println("   -> Shows product category revenue trends by year and quarter");
+        System.out.println();
+        System.out.println("3. Revenue by State and Year (Parameterized)");
+        System.out.println("   -> Total orders and revenue for a specific state and year");
+        System.out.println();
+        System.out.println("4. Seller Inventory Check (Parameterized)");
+        System.out.println("   -> Find sellers by product description length");
+        System.out.println();
+        System.out.println("5. Back to Main Menu");
+        System.out.println();
+        System.out.print("Enter your choice (1-5): ");
+
+        String choice = scanner.nextLine().trim();
+
+        switch (choice) {
+            case "1":
+                QueryExecutor.executeAndDisplay(QueryManager.DELIVERY_PERFORMANCE_BY_STATE,
+                                               "Delivery Performance by State");
+                pause();
+                break;
+            case "2":
+                QueryExecutor.executeAndDisplay(QueryManager.CATEGORY_PERFORMANCE_BY_QUARTER,
+                                               "Category Performance by Quarter");
+                pause();
+                break;
+            case "3":
+                executeRevenueByStateAndYear();
+                pause();
+                break;
+            case "4":
+                executeSellerInventoryCheck();
+                pause();
+                break;
+            case "5":
+                return;
+            default:
+                System.out.println("\nInvalid choice.");
+                pause();
+        }
+    }
+
     private void showDatabaseManagementMenu() {
         printSeparator();
-        System.out.println("Main Menu > 6. Database Management");
+        System.out.println("Main Menu > 7. Database Management");
         printSeparator();
         System.out.println("\nDatabase Management Options:");
         System.out.println("-----------------------------");
@@ -331,6 +386,44 @@ public class MenuInterface {
                 System.out.println("\nInvalid choice.");
                 pause();
         }
+    }
+
+    private void executeRevenueByStateAndYear() {
+        printSeparator();
+        System.out.println("Revenue by State and Year - Parameterized Query");
+        printSeparator();
+        System.out.println("\nThis query shows total orders and revenue for a specific state and year.");
+        System.out.println();
+
+        System.out.print("Enter state code (e.g., SP, RJ, MG): ");
+        String stateCode = scanner.nextLine().trim().toUpperCase();
+
+        System.out.print("Enter year (e.g., 2017, 2018): ");
+        String year = scanner.nextLine().trim();
+
+        // Create year pattern for LIKE query (e.g., "2017%")
+        String yearPattern = year + "%";
+
+        System.out.println("\nExecuting query for state: " + stateCode + ", year: " + year);
+        QueryExecutor.executeAndDisplay(QueryManager.REVENUE_BY_STATE_AND_YEAR,
+                                       "Revenue by State and Year",
+                                       stateCode, yearPattern);
+    }
+
+    private void executeSellerInventoryCheck() {
+        printSeparator();
+        System.out.println("Seller Inventory Check - Parameterized Query");
+        printSeparator();
+        System.out.println("\nThis query finds sellers with products matching a description length pattern.");
+        System.out.println();
+
+        System.out.print("Enter product description length pattern (e.g., 100, 50%, %500): ");
+        String descLengthPattern = scanner.nextLine().trim();
+
+        System.out.println("\nExecuting query for description length pattern: " + descLengthPattern);
+        QueryExecutor.executeAndDisplay(QueryManager.SELLER_INVENTORY_CHECK,
+                                       "Seller Inventory Check",
+                                       descLengthPattern);
     }
 
     private void clearDatabaseWithConfirmation() {
@@ -374,7 +467,7 @@ public class MenuInterface {
         System.out.println("- Database credentials are secured in auth.cfg");
         System.out.println();
         System.out.println("DATABASE MANAGEMENT:");
-        System.out.println("- Option 6 provides data deletion and repopulation");
+        System.out.println("- Option 7 provides data deletion and repopulation");
         System.out.println("- Deletion requires confirmation (prevents accidental data loss)");
         System.out.println("- Repopulation loads from pre-validated CSV files");
         System.out.println();
@@ -384,7 +477,8 @@ public class MenuInterface {
         System.out.println("3. Customer Behavior - Repeat purchases, loyalty metrics, lifetime value");
         System.out.println("4. Order Quality - Review rates, delivery performance, sentiment analysis");
         System.out.println("5. Payment Analysis - Payment methods, installment behavior, state preferences");
-        System.out.println("6. Database Management - Clear data, repopulate, verify integrity");
+        System.out.println("6. Additional Analysis - Delivery metrics, quarterly trends, parameterized queries");
+        System.out.println("7. Database Management - Clear data, repopulate, verify integrity");
         System.out.println();
         System.out.println("RESULT INTERPRETATION:");
         System.out.println("- Column headers describe each data field");

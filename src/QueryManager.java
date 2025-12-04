@@ -53,21 +53,19 @@ public class QueryManager {
 
     public static final String HIGHEST_SALES_GEOLOCATION =
             "SELECT " +
-            "    g.zip_code_prefix, " +
-            "    g.geolocation_city, " +
             "    g.geolocation_state, " +
-            "    g.geolocation_lat, " +
-            "    g.geolocation_lng, " +
+            "    s.state_name, " +
             "    COUNT(DISTINCT o.order_id) AS total_orders, " +
             "    COUNT(DISTINCT c.customer_id) AS unique_customers, " +
-            "    SUM(oi.price + oi.freight_value) AS total_revenue " +
+            "    SUM(oi.price + oi.freight_value) AS total_revenue, " +
+            "    AVG(oi.price + oi.freight_value) AS avg_order_value " +
             "FROM GEOLOCATION g " +
+            "JOIN STATES s ON g.geolocation_state = s.state_code " +
             "JOIN CUSTOMERS c ON g.zip_code_prefix = c.customer_zip_code_prefix " +
             "JOIN ORDERS o ON c.customer_id = o.customer_id " +
             "JOIN ORDER_ITEMS oi ON o.order_id = oi.order_id " +
-            "GROUP BY g.zip_code_prefix, g.geolocation_city, g.geolocation_state, " +
-            "         g.geolocation_lat, g.geolocation_lng " +
-            "ORDER BY total_orders DESC";
+            "GROUP BY g.geolocation_state, s.state_name " +
+            "ORDER BY total_revenue DESC";
 
     // ==================== SELLER PERFORMANCE ====================
 
@@ -78,7 +76,7 @@ public class QueryManager {
             "    g.geolocation_state AS seller_state, " +
             "    COUNT(DISTINCT oi.order_id) AS orders_fulfilled, " +
             "    COUNT(DISTINCT r.review_id) AS reviews_received, " +
-            "    AVG(r.review_score) AS avg_review_score, " +
+            "    COALESCE(AVG(r.review_score), 0) AS avg_review_score, " +
             "    ROUND(COUNT(DISTINCT r.review_id) * 100.0 / " +
             "          COUNT(DISTINCT oi.order_id), 2) AS review_rate_percentage " +
             "FROM SELLERS s " +
@@ -86,7 +84,7 @@ public class QueryManager {
             "JOIN ORDER_ITEMS oi ON s.seller_id = oi.seller_id " +
             "LEFT JOIN ORDER_REVIEWS r ON oi.order_id = r.order_id " +
             "GROUP BY s.seller_id, g.geolocation_city, g.geolocation_state " +
-            "HAVING COUNT(DISTINCT r.review_id) > 0 " +
+            "HAVING COUNT(DISTINCT oi.order_id) >= 1 " +
             "ORDER BY avg_review_score DESC, orders_fulfilled DESC";
 
     public static final String UNUSED_PRODUCT_CATALOG =
@@ -158,9 +156,9 @@ public class QueryManager {
             "FROM CATEGORIES c " +
             "JOIN PRODUCTS p ON c.category_id = p.category_id " +
             "JOIN ORDER_ITEMS oi ON p.product_id = oi.product_id " +
-            "JOIN ORDER_REVIEWS r ON oi.order_id = r.order_id " +
+            "LEFT JOIN ORDER_REVIEWS r ON oi.order_id = r.order_id " +
+            "WHERE r.review_id IS NOT NULL " +
             "GROUP BY c.category_id, c.category_name_english " +
-            "HAVING COUNT(DISTINCT r.review_id) >= 10 " +
             "ORDER BY avg_review_score ASC";
 
     public static final String ORDERS_PAID_IN_FULL =
