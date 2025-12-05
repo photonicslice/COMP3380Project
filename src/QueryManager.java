@@ -29,27 +29,24 @@ public class QueryManager {
             "    SUM(oi.price) AS total_revenue, " +
             "    AVG(oi.price) AS avg_product_price " +
             "FROM CATEGORIES c " +
-            "JOIN PRODUCTS p ON c.category_id = p.category_id " +
+            "JOIN PRODUCTS p ON c.category_name_portuguese = p.category_name_portuguese " +
             "JOIN ORDER_ITEMS oi ON p.product_id = oi.product_id " +
-            "GROUP BY c.category_id, c.category_name_english " +
+            "GROUP BY c.category_name_english " +
             "ORDER BY total_revenue DESC";
 
     public static final String STATES_WITH_CUSTOMERS_NO_ORDERS =
             "SELECT " +
             "    s.state_code, " +
             "    s.state_name, " +
-            "    COUNT(DISTINCT c.customer_id) AS registered_customers " +
+            "    COUNT(DISTINCT c.customer_id) AS total_customers, " +
+            "    COUNT(DISTINCT o.order_id) AS total_orders, " +
+            "    ROUND(COUNT(DISTINCT o.order_id) * 1.0 / COUNT(DISTINCT c.customer_id), 2) AS orders_per_customer " +
             "FROM STATES s " +
             "JOIN GEOLOCATION g ON s.state_code = g.geolocation_state " +
             "JOIN CUSTOMERS c ON g.zip_code_prefix = c.customer_zip_code_prefix " +
-            "WHERE NOT EXISTS ( " +
-            "    SELECT 1 " +
-            "    FROM ORDERS o " +
-            "    WHERE o.customer_id = c.customer_id " +
-            ") " +
+            "LEFT JOIN ORDERS o ON c.customer_id = o.customer_id " +
             "GROUP BY s.state_code, s.state_name " +
-            "HAVING COUNT(DISTINCT c.customer_id) > 0 " +
-            "ORDER BY registered_customers DESC";
+            "ORDER BY orders_per_customer DESC";
 
     public static final String HIGHEST_SALES_GEOLOCATION =
             "SELECT " +
@@ -88,22 +85,20 @@ public class QueryManager {
             "ORDER BY avg_review_score DESC, orders_fulfilled DESC";
 
     public static final String UNUSED_PRODUCT_CATALOG =
-            "SELECT " +
+            "SELECT TOP 100 " +
             "    p.product_id, " +
-            "    c.category_name_english AS category, " +
+            "    COALESCE(c.category_name_english, p.category_name_portuguese, 'Unknown') AS category, " +
+            "    COUNT(DISTINCT oi.order_id) AS times_ordered, " +
+            "    SUM(oi.price) AS total_revenue, " +
+            "    AVG(oi.price) AS avg_price, " +
             "    p.product_weight_g, " +
-            "    p.product_length_cm, " +
-            "    p.product_height_cm, " +
-            "    p.product_width_cm, " +
             "    p.product_photos_qty " +
             "FROM PRODUCTS p " +
-            "JOIN CATEGORIES c ON p.category_id = c.category_id " +
-            "WHERE NOT EXISTS ( " +
-            "    SELECT 1 " +
-            "    FROM ORDER_ITEMS oi " +
-            "    WHERE oi.product_id = p.product_id " +
-            ") " +
-            "ORDER BY c.category_name_english, p.product_id";
+            "LEFT JOIN CATEGORIES c ON p.category_name_portuguese = c.category_name_portuguese " +
+            "JOIN ORDER_ITEMS oi ON p.product_id = oi.product_id " +
+            "GROUP BY p.product_id, c.category_name_english, p.category_name_portuguese, " +
+            "         p.product_weight_g, p.product_photos_qty " +
+            "ORDER BY times_ordered ASC, total_revenue ASC";
 
     public static final String STATES_WITH_CUSTOMERS_NO_SELLERS =
             "SELECT " +
@@ -154,11 +149,11 @@ public class QueryManager {
             "    SUM(CASE WHEN r.review_score <= 2 THEN 1 ELSE 0 END) AS negative_reviews, " +
             "    SUM(CASE WHEN r.review_score >= 4 THEN 1 ELSE 0 END) AS positive_reviews " +
             "FROM CATEGORIES c " +
-            "JOIN PRODUCTS p ON c.category_id = p.category_id " +
+            "JOIN PRODUCTS p ON c.category_name_portuguese = p.category_name_portuguese " +
             "JOIN ORDER_ITEMS oi ON p.product_id = oi.product_id " +
             "LEFT JOIN ORDER_REVIEWS r ON oi.order_id = r.order_id " +
             "WHERE r.review_id IS NOT NULL " +
-            "GROUP BY c.category_id, c.category_name_english " +
+            "GROUP BY c.category_name_english " +
             "ORDER BY avg_review_score ASC";
 
     public static final String ORDERS_PAID_IN_FULL =
@@ -234,7 +229,7 @@ public class QueryManager {
     // ==================== CUSTOMER BEHAVIOR AND LOYALTY ====================
 
     public static final String REPEAT_PURCHASE_CUSTOMERS =
-            "SELECT " +
+            "SELECT TOP 100 " +
             "    c.customer_id, " +
             "    c.customer_unique_id, " +
             "    g.geolocation_city, " +
@@ -249,8 +244,7 @@ public class QueryManager {
             "JOIN ORDER_ITEMS oi ON o.order_id = oi.order_id " +
             "GROUP BY c.customer_id, c.customer_unique_id, " +
             "         g.geolocation_city, g.geolocation_state " +
-            "HAVING COUNT(DISTINCT o.order_id) > 1 " +
-            "ORDER BY total_orders DESC, total_lifetime_value DESC";
+            "ORDER BY total_lifetime_value DESC, total_orders DESC";
 
     public static final String AVG_TIME_BETWEEN_ORDERS =
             "WITH customer_orders AS ( " +
@@ -313,30 +307,40 @@ public class QueryManager {
             "    SUM(oi.price) AS revenue, " +
             "    AVG(oi.price) AS avg_item_price " +
             "FROM CATEGORIES c " +
-            "JOIN PRODUCTS p ON c.category_id = p.category_id " +
+            "JOIN PRODUCTS p ON c.category_name_portuguese = p.category_name_portuguese " +
             "JOIN ORDER_ITEMS oi ON p.product_id = oi.product_id " +
             "JOIN ORDERS o ON oi.order_id = o.order_id " +
-            "WHERE o.order_status = 'delivered' " +
             "GROUP BY c.category_name_english, YEAR(o.order_purchase_timestamp), " +
             "         DATEPART(QUARTER, o.order_purchase_timestamp) " +
             "ORDER BY c.category_name_english, order_year, order_quarter";
 
     public static final String REVENUE_BY_STATE_AND_YEAR =
             "SELECT " +
-            "    COUNT(DISTINCT T1.order_id) AS Total_Orders, " +
-            "    SUM(T2.payment_value) AS Total_Revenue " +
-            "FROM ORDERS T1 " +
-            "JOIN ORDER_PAYMENTS T2 ON T1.order_id = T2.order_id " +
-            "JOIN CUSTOMERS T3 ON T1.customer_id = T3.customer_id " +
-            "WHERE T3.customer_state = ? " +
-            "  AND T1.order_purchase_timestamp LIKE ? " +
-            "GROUP BY T3.customer_state";
+            "    g.geolocation_state AS state, " +
+            "    s.state_name, " +
+            "    COUNT(DISTINCT o.order_id) AS total_orders, " +
+            "    SUM(oi.price + oi.freight_value) AS total_revenue " +
+            "FROM CUSTOMERS c " +
+            "JOIN GEOLOCATION g ON c.customer_zip_code_prefix = g.zip_code_prefix " +
+            "JOIN STATES s ON g.geolocation_state = s.state_code " +
+            "JOIN ORDERS o ON c.customer_id = o.customer_id " +
+            "JOIN ORDER_ITEMS oi ON o.order_id = oi.order_id " +
+            "WHERE g.geolocation_state = ? " +
+            "  AND YEAR(o.order_purchase_timestamp) = ? " +
+            "GROUP BY g.geolocation_state, s.state_name";
 
-    public static final String SELLER_INVENTORY_CHECK =
+    public static final String SELLERS_BY_CATEGORY =
             "SELECT DISTINCT " +
-            "    T1.seller_id " +
-            "FROM ORDER_ITEMS T1 " +
-            "JOIN PRODUCTS T2 ON T1.product_id = T2.product_id " +
-            "WHERE T2.product_description_length IS NOT NULL " +
-            "  AND T2.product_description_length LIKE ?";
+            "    s.seller_id, " +
+            "    g.geolocation_city AS seller_city, " +
+            "    g.geolocation_state AS seller_state, " +
+            "    COUNT(DISTINCT oi.order_id) AS total_orders " +
+            "FROM SELLERS s " +
+            "JOIN ORDER_ITEMS oi ON s.seller_id = oi.seller_id " +
+            "JOIN PRODUCTS p ON oi.product_id = p.product_id " +
+            "JOIN CATEGORIES c ON p.category_name_portuguese = c.category_name_portuguese " +
+            "JOIN GEOLOCATION g ON s.seller_zip_code_prefix = g.zip_code_prefix " +
+            "WHERE c.category_name_english LIKE ? " +
+            "GROUP BY s.seller_id, g.geolocation_city, g.geolocation_state " +
+            "ORDER BY total_orders DESC";
 }

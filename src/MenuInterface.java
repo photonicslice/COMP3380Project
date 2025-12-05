@@ -81,8 +81,8 @@ public class MenuInterface {
         System.out.println("2. Top Selling Categories by Revenue");
         System.out.println("   -> Identifies product categories generating most revenue");
         System.out.println();
-        System.out.println("3. States with Customers but No Orders");
-        System.out.println("   -> Finds untapped markets with registered users");
+        System.out.println("3. Customer Order Activity by State");
+        System.out.println("   -> Shows customer engagement and orders per customer by state");
         System.out.println();
         System.out.println("4. Highest Sales Geolocation");
         System.out.println("   -> Identifies zip code with most customer orders");
@@ -106,7 +106,7 @@ public class MenuInterface {
                 break;
             case "3":
                 QueryExecutor.executeAndDisplay(QueryManager.STATES_WITH_CUSTOMERS_NO_ORDERS,
-                                               "States with Customers but No Orders");
+                                               "Customer Order Activity by State");
                 pause();
                 break;
             case "4":
@@ -131,8 +131,8 @@ public class MenuInterface {
         System.out.println("1. Seller Success Rate by Review Score");
         System.out.println("   -> Shows top-performing sellers with highest review scores");
         System.out.println();
-        System.out.println("2. Unused Product Catalog");
-        System.out.println("   -> Lists products that have never been ordered");
+        System.out.println("2. Least Popular Products");
+        System.out.println("   -> Shows products with lowest sales and revenue");
         System.out.println();
         System.out.println("3. States with Customers but No Sellers");
         System.out.println("   -> Identifies fulfillment gaps");
@@ -154,7 +154,7 @@ public class MenuInterface {
                 break;
             case "2":
                 QueryExecutor.executeAndDisplay(QueryManager.UNUSED_PRODUCT_CATALOG,
-                                               "Unused Product Catalog");
+                                               "Least Popular Products");
                 pause();
                 break;
             case "3":
@@ -181,8 +181,8 @@ public class MenuInterface {
         printSeparator();
         System.out.println("\nCustomer Behavior Analysis - Available Queries:");
         System.out.println("------------------------------------------------");
-        System.out.println("1. Repeat Purchase Customers");
-        System.out.println("   -> Identifies customers who placed multiple orders");
+        System.out.println("1. Top Customers by Lifetime Value");
+        System.out.println("   -> Shows customers with highest total spending");
         System.out.println();
         System.out.println("2. Average Time Between Orders");
         System.out.println("   -> Shows customer return frequency metrics");
@@ -196,7 +196,7 @@ public class MenuInterface {
         switch (choice) {
             case "1":
                 QueryExecutor.executeAndDisplay(QueryManager.REPEAT_PURCHASE_CUSTOMERS,
-                                               "Repeat Purchase Customers");
+                                               "Top Customers by Lifetime Value");
                 pause();
                 break;
             case "2":
@@ -317,8 +317,8 @@ public class MenuInterface {
         System.out.println("3. Revenue by State and Year (Parameterized)");
         System.out.println("   -> Total orders and revenue for a specific state and year");
         System.out.println();
-        System.out.println("4. Seller Inventory Check (Parameterized)");
-        System.out.println("   -> Find sellers by product description length");
+        System.out.println("4. Find Sellers by Category (Parameterized)");
+        System.out.println("   -> Find sellers who sell products in a specific category");
         System.out.println();
         System.out.println("5. Back to Main Menu");
         System.out.println();
@@ -359,32 +359,154 @@ public class MenuInterface {
         printSeparator();
         System.out.println("\nDatabase Management Options:");
         System.out.println("-----------------------------");
-        System.out.println("1. Clear All Data (WARNING: Destructive Operation)");
+        System.out.println("1. View Database Statistics");
+        System.out.println("   -> Shows row counts and data completeness for all tables");
+        System.out.println();
+        System.out.println("2. Clear All Data (WARNING: Destructive Operation)");
         System.out.println("   -> Deletes all records from all tables");
         System.out.println();
-        System.out.println("2. Repopulate Database from CSV Files");
-        System.out.println("   -> Loads data from pre-validated CSV files");
+        System.out.println("3. Populate Database (All at Once)");
+        System.out.println("   -> Loads all data from CSV files in one operation");
         System.out.println();
-        System.out.println("3. Back to Main Menu");
+        System.out.println("4. Populate Database by Phases");
+        System.out.println("   -> Load data in 4 phases (Reference, Entity, Transaction, Relationship)");
         System.out.println();
-        System.out.print("Enter your choice (1-3): ");
+        System.out.println("5. Back to Main Menu");
+        System.out.println();
+        System.out.print("Enter your choice (1-5): ");
 
         String choice = scanner.nextLine().trim();
 
         switch (choice) {
             case "1":
-                clearDatabaseWithConfirmation();
+                DatabaseStatistics.showDatabaseStatistics();
                 pause();
                 break;
             case "2":
-                CSVDataLoader.populateAllTables();
+                clearDatabaseWithConfirmation();
                 pause();
                 break;
             case "3":
+                CSVDataLoader.populateAllTables();
+                pause();
+                break;
+            case "4":
+                showPhasePopulationMenu();
+                break;
+            case "5":
                 return;
             default:
                 System.out.println("\nInvalid choice.");
                 pause();
+        }
+    }
+
+    private void showPhasePopulationMenu() {
+        printSeparator();
+        System.out.println("Main Menu > 7. Database Management > 4. Phase Population");
+        printSeparator();
+        System.out.println("\nPhase-Based Database Population:");
+        System.out.println("---------------------------------");
+        System.out.println("Populate the database in 4 sequential phases. Each phase must be");
+        System.out.println("completed before the next phase due to foreign key dependencies.");
+        System.out.println();
+        System.out.println("1. Phase 1: Reference Tables (STATES, CATEGORIES, GEOLOCATION)");
+        System.out.println("   -> Foundation tables with no dependencies");
+        System.out.println();
+        System.out.println("2. Phase 2: Entity Tables (CUSTOMERS, SELLERS, PRODUCTS)");
+        System.out.println("   -> Core business entities");
+        System.out.println();
+        System.out.println("3. Phase 3: Transaction Tables (ORDERS)");
+        System.out.println("   -> Order transactions");
+        System.out.println();
+        System.out.println("4. Phase 4: Relationship Tables (ORDER_ITEMS, ORDER_PAYMENTS, ORDER_REVIEWS)");
+        System.out.println("   -> Order details and relationships");
+        System.out.println();
+        System.out.println("5. Run All Phases Sequentially");
+        System.out.println("   -> Automatically runs Phase 1-4 in order");
+        System.out.println();
+        System.out.println("6. Back to Database Management Menu");
+        System.out.println();
+        System.out.print("Enter your choice (1-6): ");
+
+        String choice = scanner.nextLine().trim();
+
+        switch (choice) {
+            case "1":
+                System.out.println("\nRunning Phase 1...");
+                Phase1PopulateReferenceTables.main(new String[]{});
+                pause();
+                break;
+            case "2":
+                System.out.println("\nRunning Phase 2...");
+                Phase2PopulateEntityTables.main(new String[]{});
+                pause();
+                break;
+            case "3":
+                System.out.println("\nRunning Phase 3...");
+                Phase3PopulateOrders.main(new String[]{});
+                pause();
+                break;
+            case "4":
+                System.out.println("\nRunning Phase 4...");
+                Phase4PopulateRelationships.main(new String[]{});
+                pause();
+                break;
+            case "5":
+                runAllPhases();
+                pause();
+                break;
+            case "6":
+                return;
+            default:
+                System.out.println("\nInvalid choice.");
+                pause();
+        }
+    }
+
+    private void runAllPhases() {
+        printSeparator();
+        System.out.println("Running All Phases Sequentially");
+        printSeparator();
+        System.out.println("\nThis will run Phase 1-4 in order.");
+        System.out.print("Continue? (yes/no): ");
+
+        String confirmation = scanner.nextLine().trim().toLowerCase();
+
+        if (confirmation.equals("yes") || confirmation.equals("y")) {
+            try {
+                System.out.println("\nStarting sequential phase population...\n");
+                long totalStart = System.currentTimeMillis();
+
+                Phase1PopulateReferenceTables.main(new String[]{});
+                System.out.println();
+
+                Phase2PopulateEntityTables.main(new String[]{});
+                System.out.println();
+
+                Phase3PopulateOrders.main(new String[]{});
+                System.out.println();
+
+                Phase4PopulateRelationships.main(new String[]{});
+
+                long totalEnd = System.currentTimeMillis();
+                double totalSeconds = (totalEnd - totalStart) / 1000.0;
+
+                System.out.println("\n" + "=".repeat(60));
+                System.out.println("ALL PHASES COMPLETED SUCCESSFULLY!");
+                System.out.println("Total time: " + String.format("%.2f", totalSeconds) + " seconds");
+                System.out.println("=".repeat(60));
+
+                // Show final statistics
+                System.out.println("\nFinal Database Statistics:");
+                DatabaseStatistics.showQuickStats();
+
+            } catch (Exception e) {
+                System.out.println("\nError during phase population: " + e.getMessage());
+                e.printStackTrace();
+            }
+        } else {
+            System.out.println("\nOperation cancelled.");
         }
     }
 
@@ -398,32 +520,56 @@ public class MenuInterface {
         System.out.print("Enter state code (e.g., SP, RJ, MG): ");
         String stateCode = scanner.nextLine().trim().toUpperCase();
 
+        // Validate state code (should be exactly 2 letters)
+        if (!stateCode.matches("[A-Z]{2}")) {
+            System.out.println("\nError: Invalid state code. Please enter exactly 2 letters (e.g., SP, RJ, MG).");
+            return;
+        }
+
         System.out.print("Enter year (e.g., 2017, 2018): ");
         String year = scanner.nextLine().trim();
 
-        // Create year pattern for LIKE query (e.g., "2017%")
-        String yearPattern = year + "%";
+        // Validate year (should be a 4-digit number)
+        if (!year.matches("\\d{4}")) {
+            System.out.println("\nError: Invalid year. Please enter a 4-digit year (e.g., 2017, 2018).");
+            return;
+        }
 
         System.out.println("\nExecuting query for state: " + stateCode + ", year: " + year);
         QueryExecutor.executeAndDisplay(QueryManager.REVENUE_BY_STATE_AND_YEAR,
                                        "Revenue by State and Year",
-                                       stateCode, yearPattern);
+                                       stateCode, year);
     }
 
     private void executeSellerInventoryCheck() {
         printSeparator();
-        System.out.println("Seller Inventory Check - Parameterized Query");
+        System.out.println("Find Sellers by Category - Parameterized Query");
         printSeparator();
-        System.out.println("\nThis query finds sellers with products matching a description length pattern.");
+        System.out.println("\nThis query finds sellers who sell products in a specific category.");
+        System.out.println("You can use '%' as a wildcard (e.g., 'health%' finds health_beauty, healthcare, etc.)");
         System.out.println();
 
-        System.out.print("Enter product description length pattern (e.g., 100, 50%, %500): ");
-        String descLengthPattern = scanner.nextLine().trim();
+        System.out.print("Enter category name (e.g., electronics, furniture, toys): ");
+        String categoryName = scanner.nextLine().trim();
 
-        System.out.println("\nExecuting query for description length pattern: " + descLengthPattern);
-        QueryExecutor.executeAndDisplay(QueryManager.SELLER_INVENTORY_CHECK,
-                                       "Seller Inventory Check",
-                                       descLengthPattern);
+        // Validate category name (should not be empty and contain only letters, spaces, underscores, and %)
+        if (categoryName.isEmpty()) {
+            System.out.println("\nError: Category name cannot be empty.");
+            return;
+        }
+
+        if (!categoryName.matches("[a-zA-Z0-9_% ]+")) {
+            System.out.println("\nError: Invalid category name. Use only letters, numbers, spaces, underscores, and % for wildcards.");
+            return;
+        }
+
+        // Add wildcard for partial matching if not already present
+        String searchPattern = categoryName.contains("%") ? categoryName : "%" + categoryName + "%";
+
+        System.out.println("\nExecuting query for category: " + categoryName);
+        QueryExecutor.executeAndDisplay(QueryManager.SELLERS_BY_CATEGORY,
+                                       "Sellers by Category",
+                                       searchPattern);
     }
 
     private void clearDatabaseWithConfirmation() {

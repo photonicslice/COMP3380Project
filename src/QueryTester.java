@@ -57,8 +57,8 @@ public class QueryTester {
         queries.add(new QueryInfo("CATEGORY_PERFORMANCE_BY_QUARTER", QueryManager.CATEGORY_PERFORMANCE_BY_QUARTER));
 
         // Parameterized queries with sample data
-        queries.add(new QueryInfo("REVENUE_BY_STATE_AND_YEAR", QueryManager.REVENUE_BY_STATE_AND_YEAR, "SP", "2017%"));
-        queries.add(new QueryInfo("SELLER_INVENTORY_CHECK", QueryManager.SELLER_INVENTORY_CHECK, "100%"));
+        queries.add(new QueryInfo("REVENUE_BY_STATE_AND_YEAR", QueryManager.REVENUE_BY_STATE_AND_YEAR, "SP", "2017"));
+        queries.add(new QueryInfo("SELLERS_BY_CATEGORY", QueryManager.SELLERS_BY_CATEGORY, "%furniture%"));
 
         List<String> emptyQueries = new ArrayList<>();
         int totalQueries = queries.size();

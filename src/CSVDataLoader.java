@@ -11,8 +11,8 @@ import java.sql.Statement;
  * Handles all data population and table clearing operations.
  */
 public class CSVDataLoader {
-    private static final String DATA_DIR = "data/";
-    private static final int BATCH_SIZE = 5000; // Batch size for bulk inserts
+    public static final String DATA_DIR = "data/";
+    public static final int BATCH_SIZE = 5000; // Batch size for bulk inserts
 
     /**
      * Clears all data from all tables in the correct order (respecting foreign keys)
@@ -264,7 +264,7 @@ public class CSVDataLoader {
      * Generic CSV loader that reads a file and executes prepared statement for each row
      * Optimized with batch processing and transaction control
      */
-    private static int loadCSV(String filename, String insertSQL, int columnCount)
+    public static int loadCSV(String filename, String insertSQL, int columnCount)
             throws SQLException, IOException {
         Connection conn = DatabaseConnection.getConnection();
         int count = 0;
@@ -341,7 +341,7 @@ public class CSVDataLoader {
     /**
      * Parses a CSV line handling quoted fields
      */
-    private static String[] parseCSVLine(String line) {
+    public static String[] parseCSVLine(String line) {
         java.util.List<String> values = new java.util.ArrayList<>();
         boolean inQuotes = false;
         StringBuilder currentValue = new StringBuilder();

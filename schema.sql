@@ -1,6 +1,6 @@
 -- Brazilian E-Commerce Database Schema
 -- COMP 3380 - Database Project
--- Creates all tables based on the ER diagram in Stage 6
+
 
 -- Drop existing tables (in reverse order of dependencies)
 IF OBJECT_ID('ORDER_REVIEWS', 'U') IS NOT NULL DROP TABLE ORDER_REVIEWS;
